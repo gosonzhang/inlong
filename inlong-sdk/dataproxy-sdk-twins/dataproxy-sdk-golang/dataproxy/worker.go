@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 
 	"github.com/panjf2000/gnet/v2"
 	"go.uber.org/atomic"
@@ -130,7 +130,7 @@ type worker struct {
 	metrics            *metrics                 // metrics
 	bufferPool         bufferpool.BufferPool    // buffer pool
 	bytePool           bufferpool.BytePool      // byte pool
-	stop               bool                     // stop the worker
+	stop               chan struct{}            // stop the worker
 }
 
 func newWorker(cli *client, index int, opts *Options) (*worker, error) {
@@ -162,6 +162,7 @@ func newWorker(cli *client, index int, opts *Options) (*worker, error) {
 		bufferPool:         opts.BufferPool,
 		bytePool:           opts.BytePool,
 		log:                opts.Logger,
+		stop:               make(chan struct{}),
 	}
 
 	// set to init state
@@ -197,8 +198,10 @@ func (w *worker) start() {
 			}
 		}()
 
-		for !w.stop {
+		for {
 			select {
+			case <-w.stop:
+				return
 			case req, ok := <-w.cmdChan:
 				if !ok {
 					continue
@@ -329,7 +332,7 @@ func (w *worker) sendAsync(ctx context.Context, msg Message, callback Callback) 
 }
 
 func (w *worker) buildBatchID() string {
-	u, err := uuid.NewV4()
+	u, err := uuid.NewRandom()
 	if err != nil {
 		return w.indexStr + ":" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	}
@@ -640,7 +643,7 @@ func (w *worker) close() {
 
 	// wait for the close request done
 	<-req.doneCh
-	w.stop = true
+	close(w.stop)
 }
 
 func (w *worker) handleClose(req *closeReq) {
