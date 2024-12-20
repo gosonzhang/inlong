@@ -15,25 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.audit.protocol;
+package org.apache.inlong.sdk.transform.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-public class AuditData {
+@SuperBuilder
+public class RowDataSinkInfo extends SinkInfo {
 
-    private String ip;
-    private String dockerId;
-    private String threadId;
-    private long sdkTs;
-    private long packetId;
-    private long logTs;
-    private String inlongGroupId;
-    private String inlongStreamId;
-    private String auditId;
-    private String auditTag;
-    private long count;
-    private long size;
-    private long delay;
-    private long auditVersion;
+    private List<FieldInfo> fields;
+
+    public RowDataSinkInfo(String charset, List<FieldInfo> fields) {
+        super(SinkInfo.ROWDATA, charset);
+        this.fields = fields;
+    }
 }
