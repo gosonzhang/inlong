@@ -63,7 +63,7 @@ func IsPrivateIP(ip string) bool {
 		return false
 	}
 
-	if first == 11 || first == 10 || first == 9 || first == 30 || first == 21 ||
+	if first == 11 || first == 10 || first == 9 || first == 30 || first == 21 || first == 22 ||
 		(first == 100 && second >= 64 && second <= 127) ||
 		(first == 172 && second >= 16 && second <= 31) ||
 		(first == 192 && second == 168) ||
